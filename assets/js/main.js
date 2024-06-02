@@ -5,7 +5,8 @@ let usuarios = [
         celular: "+56912345678",
         password: "Admin123!",
         fechaNacimiento: "1990-01-01",
-        rol: "administrador"
+        rol: "administrador",
+        token: ""
     },
     {
         email: "jperez@gmail.com",
@@ -13,7 +14,8 @@ let usuarios = [
         celular: "+56987654321",
         password: "Usuario1!",
         fechaNacimiento: "1985-05-10",
-        rol: "usuario"
+        rol: "usuario",
+        token: ""
     },
     {
         email: "mgomez@gmail.com",
@@ -21,7 +23,8 @@ let usuarios = [
         celular: "+56955555555",
         password: "Usuario2!",
         fechaNacimiento: "1992-12-20",
-        rol: "usuario"
+        rol: "usuario",
+        token: ""
     }
 ];
 
@@ -125,12 +128,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-function validarFormatoContraseña(contraseña) {
+function validarFormatoPassword(password) {
     // Expresión regular para validar el formato de la contraseña
-    const regexContraseña = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{6,15}$/;
+    const regexPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{6,15}$/;
 
     // Validar el formato de la contraseña
-    if (regexContraseña.test(contraseña)) {
+    if (regexPassword.test(password)) {
         return true; // La contraseña cumple con el formato requerido
     } else {
         return false; // La contraseña no cumple con el formato requerido
@@ -177,7 +180,7 @@ if (registroForm) {
         }
 
         // Validar el formato de la contraseña
-        if (!validarFormatoContraseña(password)) {
+        if (!validarFormatoPassword(password)) {
             alert('La contraseña debe tener entre 6 y 15 caracteres, y contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial.');
             return;
         }
@@ -211,7 +214,8 @@ if (registroForm) {
             celular: celular,
             password: password,
             fechaNacimiento: fechaNacimiento,
-            rol: rol
+            rol: rol,
+            token: ""
         };
 
         // Agregar el nuevo usuario al arreglo de usuarios
@@ -264,18 +268,99 @@ if (loginForm) {
 }
 
 // Obtener el formulario de recuperación de contraseña
-const recuperarForm = document.getElementById("recuperarForm");
+const recuperarForm = document.getElementById('recuperarForm');
 
+// Agregar un evento de escucha al envío del formulario
 if (recuperarForm) {
-    // Agregar un evento de escucha al envío del formulario
-    recuperarForm.addEventListener("submit", function (event) {
+    recuperarForm.addEventListener('submit', function(event) {
         event.preventDefault(); // Evitar el envío del formulario por defecto
 
-        // Obtener el valor del campo de correo electrónico
-        const email = document.getElementById("recuperarEmail").value;
+        // Obtener los valores de los campos del formulario
+        const recuperarEmail = document.getElementById('recuperarEmail').value;
+        const token = document.getElementById('token').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
 
-        // Aquí puedes realizar la lógica de recuperación de contraseña, como enviar un enlace de recuperación al correo electrónico proporcionado
-        console.log("Enviando enlace de recuperación de contraseña a:", email);
-        // Aquí puedes agregar tu lógica de recuperación de contraseña
-    });    
+        // Obtener los usuarios del localStorage
+        const usuariosJSON = localStorage.getItem('usuarios');
+
+        if (usuariosJSON) {
+            // Convertir el JSON a un arreglo de usuarios
+            const usuarios = JSON.parse(usuariosJSON);
+
+            // Buscar el usuario por correo electrónico y token
+            const usuario = usuarios.find(usuario => usuario.email === recuperarEmail && usuario.token === token);
+
+            if (usuario) {
+                // Validar el formato de la nueva contraseña
+                if (!validarFormatoPassword(newPassword)) {
+                    alert('La contraseña debe tener entre 6 y 15 caracteres, y contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial.');
+                    return;
+                }
+
+                // Validar que las contraseñas coincidan
+                if (newPassword !== confirmPassword) {
+                    alert('Las contraseñas no coinciden. Por favor, verifica nuevamente.');
+                    return;
+                }
+
+                // Actualizar la contraseña del usuario
+                usuario.password = newPassword;
+
+                // Actualizar el arreglo de usuarios en el localStorage
+                localStorage.setItem('usuarios', JSON.stringify(usuarios));
+
+                // Mostrar una alerta de éxito
+                alert('La contraseña ha sido actualizada correctamente.');
+
+                // Redirigir al usuario a la página de inicio de sesión
+                window.location.href = 'login.html';
+            } else {
+                // El correo electrónico o el token no son válidos
+                alert('El correo electrónico o el token ingresados no son válidos. Por favor, verifica nuevamente.');
+            }
+        } else {
+            // No hay usuarios registrados en el localStorage
+            alert('No hay usuarios registrados.');
+        }
+    });
+}
+
+function generarToken() {
+    // Obtener el valor del campo de correo electrónico
+    const recuperarEmail = document.getElementById('recuperarEmail').value;
+
+    // Obtener los usuarios del localStorage
+    const usuariosJSON = localStorage.getItem('usuarios');
+
+    if (usuariosJSON) {
+        // Convertir el JSON a un arreglo de usuarios
+        const usuarios = JSON.parse(usuariosJSON);
+
+        // Buscar el usuario por correo electrónico
+        const usuario = usuarios.find(usuario => usuario.email === recuperarEmail);
+
+        if (usuario) {
+            // Generar un token aleatorio de 6 dígitos
+            const token = Math.floor(Math.random() * 900000) + 100000;
+
+            // Asignar el token generado al usuario encontrado
+            usuario.token = token.toString();
+
+            // Mostrar el token en una alerta
+            alert('Tu token de recuperación es: ' + token);
+
+            // Aquí puedes agregar la lógica para enviar el token por correo electrónico al usuario
+            // utilizando un servicio de correo electrónico o una API de envío de correos
+
+            // Actualizar el arreglo de usuarios en el localStorage
+            localStorage.setItem('usuarios', JSON.stringify(usuarios));
+        } else {
+            // El correo electrónico no está registrado
+            alert('El correo electrónico ingresado no está registrado.');
+        }
+    } else {
+        // No hay usuarios registrados en el localStorage
+        alert('No hay usuarios registrados.');
+    }
 }
