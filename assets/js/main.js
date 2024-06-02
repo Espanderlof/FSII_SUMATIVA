@@ -587,3 +587,29 @@ if (saveChangesBtn) {
         location.reload();
     });    
 }
+
+// obtener el formulario de contacto
+const contactForm = document.getElementById('contactForm');
+if (contactForm) {
+    // agregar un evento de escucha al envío del formulario y evitar el envío por defecto
+    contactForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Obtener los valores de los campos del formulario
+        const nombre = document.getElementById('nombre').value;
+        const email = document.getElementById('email').value;
+        const celular = document.getElementById('celular').value;
+        const asunto = document.getElementById('asunto').value;
+        const mensaje = document.getElementById('mensaje').value;
+
+        // Validar que todos los campos estén completos
+        if (nombre === '' || email === '' || celular === '' || asunto === '' || mensaje === '') {
+            alert('Por favor, complete todos los campos del formulario.');
+            return;
+        }
+        
+        alert('¡Mensaje enviado correctamente!');
+        contactForm.reset();
+    });
+}
+
