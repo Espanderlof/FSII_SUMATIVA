@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlbaVets · Registrarme</title>
+    <title>AlbaVets · Iniciar sesión</title>
     <link rel="shortcut icon" href="assets/img/patitas.png" type="image/x-icon">
     <meta name="keywords" content="mascotas, perros, gatos, veterinaria, productos para mascotas">
     <meta name="author" content="AlbaVets">
@@ -49,17 +49,13 @@
     </nav>
 
     <!-- Contenido principal -->
-    <div class="container mt-4">
-        <div class="row justify-content-center mb-4">
+    <div class="container mt-4 mb-4">
+        <div class="row">
             <div class="col-md-6">
-                <h2>Registro de usuario</h2>
-                <form id="registroForm">
+                <h2>Modificar información personal</h2>
+                <form id="modificarPerfilForm">
                     <div class="mb-3">
-                        <label for="email" class="form-label">Correo electrónico</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre completo</label>
+                        <label for="nombre" class="form-label">Nombre</label>
                         <input type="text" class="form-control" id="nombre" name="nombre" required>
                     </div>
                     <div class="mb-3">
@@ -67,18 +63,24 @@
                         <input type="tel" class="form-control" id="celular" name="celular" required>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Contraseña</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="repetirPassword" class="form-label">Repetir contraseña</label>
-                        <input type="password" class="form-control" id="repetirPassword" name="repetirPassword" required>
-                    </div>
-                    <div class="mb-3">
                         <label for="fechaNacimiento" class="form-label">Fecha de nacimiento</label>
                         <input type="date" class="form-control" id="fechaNacimiento" name="fechaNacimiento" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Registrarme</button>
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h2>Modificar contraseña</h2>
+                <form id="modificarContraseñaForm">
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Nueva contraseña</label>
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Repetir nueva contraseña</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cambiar contraseña</button>
                 </form>
             </div>
         </div>

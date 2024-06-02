@@ -87,6 +87,9 @@ const productos = [
     },
 ];
 
+const pageUrl = window.location.href;
+const pageName = pageUrl.split('/').pop();
+
 // Función para cargar las categorías desde la variable JSON
 function loadCategories() {
     const categoryList = document.getElementById("categoryList");
@@ -122,7 +125,7 @@ function loadProducts() {
 
 // Cargar las categorías y los productos al cargar la página
 document.addEventListener("DOMContentLoaded", function () {
-    if (window.location.pathname.endsWith("index.html")) {
+    if (pageName == "index.html") {
         loadCategories();
         loadProducts();
     }
@@ -259,7 +262,21 @@ if (loginForm) {
         if (usuarioEncontrado) {
             // El usuario ha iniciado sesión correctamente
             alert('¡Inicio de sesión exitoso!');
-            // Aquí puedes redirigir al usuario a la página principal o realizar otras acciones
+
+            // Crear un nuevo objeto de usuario sin la contraseña
+            const usuarioSinContraseña = {
+                email: usuarioEncontrado.email,
+                nombre: usuarioEncontrado.nombre,
+                celular: usuarioEncontrado.celular,
+                fechaNacimiento: usuarioEncontrado.fechaNacimiento,
+                rol: usuarioEncontrado.rol
+            };
+
+            // Guardar la sesión del usuario en el localStorage sin la contraseña
+            localStorage.setItem('sesionUsuario', JSON.stringify(usuarioSinContraseña));
+
+            // Redirigir al usuario al index
+            window.location.href = 'index.html';
         } else {
             // Las credenciales son inválidas
             alert('Correo electrónico o contraseña incorrectos. Por favor, intenta nuevamente.');
@@ -363,4 +380,123 @@ function generarToken() {
         // No hay usuarios registrados en el localStorage
         alert('No hay usuarios registrados.');
     }
+}
+
+// Obtener el elemento del menú "Mi cuenta"
+const accountDropdown = document.getElementById('accountDropdown');
+
+// Obtener la sesión del usuario del localStorage
+const sesionUsuario = JSON.parse(localStorage.getItem('sesionUsuario'));
+
+// Generar las opciones del menú "Mi cuenta" según la sesión del usuario
+if (sesionUsuario) {
+    // El usuario está logueado
+    accountDropdown.innerHTML = `
+        <li><a class="dropdown-item" href="modificar_perfil.html">Modificar mi perfil</a></li>
+        <li><a class="dropdown-item" href="#" id="logoutLink">Cerrar sesión</a></li>
+    `;
+
+    // Agregar un evento de clic al enlace "Cerrar sesión"
+    const logoutLink = document.getElementById('logoutLink');
+    logoutLink.addEventListener('click', function(event) {
+        event.preventDefault();
+        // Borrar la sesión del usuario del localStorage
+        localStorage.removeItem('sesionUsuario');
+        // Redirigir al index
+        window.location.href = 'index.html';
+    });
+} else {
+    // El usuario no está logueado
+    accountDropdown.innerHTML = `
+        <li><a class="dropdown-item" href="login.html">Iniciar sesión</a></li>
+        <li><a class="dropdown-item" href="registrarme.html">Registrarse</a></li>
+    `;
+}
+
+// Obtener los formularios
+const modificarPerfilForm = document.getElementById('modificarPerfilForm');
+const modificarContraseñaForm = document.getElementById('modificarContraseñaForm');
+
+
+// Obtener los usuarios del localStorage
+const usuariosJSON = localStorage.getItem('usuarios');
+
+// Llenar los campos del formulario de modificar perfil con los datos del usuario
+if (sesionUsuario) {
+    if (pageName == "modificar_perfil.html") {
+        document.getElementById('nombre').value = sesionUsuario.nombre;
+        document.getElementById('celular').value = sesionUsuario.celular;
+        document.getElementById('fechaNacimiento').value = sesionUsuario.fechaNacimiento;
+    }
+}
+
+// Manejar el envío del formulario de modificar perfil
+if (modificarPerfilForm) {
+    modificarPerfilForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const usuarios = JSON.parse(usuariosJSON);
+
+        // Obtener los valores de los campos del formulario
+        const nombre = document.getElementById('nombre').value;
+        const celular = document.getElementById('celular').value;
+        const fechaNacimiento = document.getElementById('fechaNacimiento').value;
+
+        // Buscar el usuario por correo electrónico y actualizar sus datos
+        usuarios.forEach(usuario => {
+            if (usuario.email === sesionUsuario.email) {
+                usuario.nombre = nombre;
+                usuario.celular = celular;
+                usuario.fechaNacimiento = fechaNacimiento;
+            }
+        });
+
+        // Actualizar el arreglo de usuarios en el localStorage
+        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+
+        // Actualizar la sesión del usuario en el localStorage
+        sesionUsuario.nombre = nombre;
+        sesionUsuario.celular = celular;
+        sesionUsuario.fechaNacimiento = fechaNacimiento;
+        localStorage.setItem('sesionUsuario', JSON.stringify(sesionUsuario));
+
+        alert('Información personal actualizada correctamente.');
+    });
+}
+
+// Manejar el envío del formulario de modificar contraseña
+if (modificarContraseñaForm) {
+    modificarContraseñaForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const usuarios = JSON.parse(usuariosJSON);
+
+        // Obtener los valores de los campos del formulario
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        // Validar que las contraseñas coincidan
+        if (newPassword !== confirmPassword) {
+            alert('Las contraseñas no coinciden. Por favor, verifica nuevamente.');
+            return;
+        }
+
+        // Validar el formato de la nueva contraseña
+        if (!validarFormatoPassword(newPassword)) {
+            alert('La contraseña debe tener entre 6 y 15 caracteres, y contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial.');
+            return;
+        }
+
+        // Buscar el usuario por correo electrónico y actualizar su contraseña
+        usuarios.forEach(usuario => {
+            if (usuario.email === sesionUsuario.email) {
+                usuario.password = newPassword;
+            }
+        });
+
+        // Actualizar el arreglo de usuarios en el localStorage
+        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+
+        alert('Contraseña actualizada correctamente.');
+    });
 }
