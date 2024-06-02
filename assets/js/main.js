@@ -6,7 +6,7 @@ let usuarios = [
         password: "Admin123!",
         fechaNacimiento: "1990-01-01",
         rol: "administrador",
-        token: ""
+        token: "",
     },
     {
         email: "jperez@gmail.com",
@@ -15,7 +15,7 @@ let usuarios = [
         password: "Usuario1!",
         fechaNacimiento: "1985-05-10",
         rol: "usuario",
-        token: ""
+        token: "",
     },
     {
         email: "mgomez@gmail.com",
@@ -24,19 +24,9 @@ let usuarios = [
         password: "Usuario2!",
         fechaNacimiento: "1992-12-20",
         rol: "usuario",
-        token: ""
-    }
+        token: "",
+    },
 ];
-
-// Verificar si la variable 'usuarios' ya está almacenada en el localStorage
-if (localStorage.getItem('usuarios') === null) {
-    // La variable 'usuarios' no está almacenada en el localStorage
-    // Convertir el arreglo de usuarios a formato JSON y almacenarlo en el localStorage
-    localStorage.setItem('usuarios', JSON.stringify(usuarios));
-    console.log('La variable "usuarios" ha sido almacenada en el localStorage.');
-}
-
-// Variable JSON con las categorías
 const categorias = [
     {
         id: 0,
@@ -55,8 +45,6 @@ const categorias = [
         nombre: "Platos y comederos",
     },
 ];
-
-// Variable JSON con los productos
 const productos = [
     {
         id: 1,
@@ -87,10 +75,113 @@ const productos = [
     },
 ];
 
+// traer el nombre de la pagina actual
 const pageUrl = window.location.href;
-const pageName = pageUrl.split('/').pop();
+const pageName = pageUrl.split("/").pop();
 
-// Función para cargar las categorías desde la variable JSON
+// verificar que la variable "usuarios" no exista en el localStorage
+if (localStorage.getItem("usuarios") === null) {
+    // almacenar la variable "usuarios" en el localStorage
+    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+    console.log('La variable "usuarios" ha sido almacenada en el localStorage.');
+}
+
+// obtener el elemento del menú "Mi cuenta"
+const accountDropdown = document.getElementById("accountDropdown");
+// obtener la sesión del usuario del localStorage
+const sesionUsuario = JSON.parse(localStorage.getItem("sesionUsuario"));
+// objeto de la tabla usuarios
+const userTableBody = document.getElementById('userTableBody');
+
+
+// generar el menú "Mi cuenta" dependiendo si el usuario está logueado o no
+if (sesionUsuario) {
+    // el usuario está logueado
+    if (sesionUsuario.rol === "administrador") {
+        accountDropdown.innerHTML = `
+            <li><a class="dropdown-item" href="manager_user.html">Administrar usuarios</a></li>
+            <li><a class="dropdown-item" href="modificar_perfil.html">Modificar mi perfil</a></li>
+            <li><a class="dropdown-item" href="#" id="logoutLink">Cerrar sesión</a></li>
+        `;
+    } else {
+        accountDropdown.innerHTML = `
+            <li><a class="dropdown-item" href="modificar_perfil.html">Modificar mi perfil</a></li>
+            <li><a class="dropdown-item" href="#" id="logoutLink">Cerrar sesión</a></li>
+        `;
+    }
+
+    // agregar un evento de clic al enlace "Cerrar sesión"
+    const logoutLink = document.getElementById("logoutLink");
+    logoutLink.addEventListener("click", function (event) {
+        event.preventDefault();
+        // Borrar la sesión del usuario del localStorage
+        localStorage.removeItem("sesionUsuario");
+        // Redirigir al index
+        window.location.href = "index.html";
+    });
+} else {
+    // el usuario no está logueado
+    accountDropdown.innerHTML = `
+        <li><a class="dropdown-item" href="login.html">Iniciar sesión</a></li>
+        <li><a class="dropdown-item" href="registrarme.html">Registrarse</a></li>
+    `;
+}
+
+//si el usuario se enceutra logueado
+if (sesionUsuario) {
+    // llenar los campos del formulario de modificar perfil con los datos del usuario
+    if (pageName == "modificar_perfil.html") {
+        document.getElementById("nombre").value = sesionUsuario.nombre;
+        document.getElementById("celular").value = sesionUsuario.celular;
+        document.getElementById("fechaNacimiento").value =
+            sesionUsuario.fechaNacimiento;
+    }
+    // llenar tabla con usuarios
+    if (pageName == "manager_user.html") {
+        generateUserRows();
+    }
+}
+
+// funcion para generar las filas de la tabla de usuarios
+function generateUserRows() {
+    // obtener los usuarios del localStorage
+    const usuariosJSON = localStorage.getItem('usuarios');
+    const usuarios = JSON.parse(usuariosJSON);
+
+    userTableBody.innerHTML = '';
+
+    usuarios.forEach(usuario => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${usuario.email}</td>
+            <td>${usuario.nombre}</td>
+            <td>${usuario.celular}</td>
+            <td>${usuario.fechaNacimiento}</td>
+            <td>${usuario.rol}</td>
+            <td>
+                <button type="button" class="btn btn-primary btn-sm editUserBtn" data-bs-toggle="modal" data-bs-target="#editUserModal" data-email="${usuario.email}">Editar</button>
+            </td>
+        `;
+        userTableBody.appendChild(row);
+    });
+
+    // agregar un evento de clic a los botones de editar usuario
+    userTableBody.addEventListener('click', function(event) {
+        if (event.target.classList.contains('editUserBtn')) {
+            const email = event.target.dataset.email;
+            const usuario = usuarios.find(usuario => usuario.email === email);
+
+            // Llenar los campos del formulario de edición con los datos del usuario
+            document.getElementById('editEmail').value = usuario.email;
+            document.getElementById('editNombre').value = usuario.nombre;
+            document.getElementById('editCelular').value = usuario.celular;
+            document.getElementById('editFechaNacimiento').value = usuario.fechaNacimiento;
+            document.getElementById('editRol').value = usuario.rol;
+        }
+    });
+}
+
+// funcion encargada de cargar las categorias
 function loadCategories() {
     const categoryList = document.getElementById("categoryList");
     categorias.forEach((category) => {
@@ -101,7 +192,7 @@ function loadCategories() {
     });
 }
 
-// Función para cargar los productos desde la variable JSON
+// funcion encargada de cargar los productos
 function loadProducts() {
     const productList = document.getElementById("productList");
     productos.forEach((product) => {
@@ -123,26 +214,28 @@ function loadProducts() {
     });
 }
 
-// Cargar las categorías y los productos al cargar la página
 document.addEventListener("DOMContentLoaded", function () {
+    // cargar categorias y productos en la pagina index.html
     if (pageName == "index.html") {
         loadCategories();
         loadProducts();
     }
 });
 
+// funcion para validar formato de la contraseña
 function validarFormatoPassword(password) {
-    // Expresión regular para validar el formato de la contraseña
+    // expresion regular para validar el formato de la contraseña
     const regexPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{6,15}$/;
 
-    // Validar el formato de la contraseña
+    // validar la contraseña con la expresion regular
     if (regexPassword.test(password)) {
-        return true; // La contraseña cumple con el formato requerido
+        return true;
     } else {
-        return false; // La contraseña no cumple con el formato requerido
+        return false;
     }
 }
 
+// funcion para validar la edad minima
 function validarEdadMinima(fechaNacimiento) {
     const hoy = new Date();
     const fechaNac = new Date(fechaNacimiento);
@@ -156,61 +249,67 @@ function validarEdadMinima(fechaNacimiento) {
     return edad >= 14;
 }
 
-
-
-
-// Obtener el formulario de registro
-const registroForm = document.getElementById('registroForm');
-
+// obtener el formulario de registro
+const registroForm = document.getElementById("registroForm");
+// si el formulario de registro existe
 if (registroForm) {
-    // Agregar un evento de escucha al envío del formulario
-    registroForm.addEventListener('submit', function(event) {
-        event.preventDefault(); // Evitar el envío del formulario por defecto
+    // agregar evento de escucha al envio del formulario y evitar el envio por defecto
+    registroForm.addEventListener("submit", function (event) {
+        event.preventDefault(); 
 
-        // Obtener los valores de los campos del formulario
-        const email = document.getElementById('email').value;
-        const nombre = document.getElementById('nombre').value;
-        const celular = document.getElementById('celular').value;
-        const password = document.getElementById('password').value;
-        const repetirPassword = document.getElementById('repetirPassword').value;
-        const fechaNacimiento = document.getElementById('fechaNacimiento').value;
-        const rol = "usuario"; // Por defecto, el rol de los nuevos usuarios es "usuario"
+        // obtener los valores de los campos del formulario
+        const email = document.getElementById("email").value;
+        const nombre = document.getElementById("nombre").value;
+        const celular = document.getElementById("celular").value;
+        const password = document.getElementById("password").value;
+        const repetirPassword = document.getElementById("repetirPassword").value;
+        const fechaNacimiento = document.getElementById("fechaNacimiento").value;
+        const rol = "usuario";
 
-        // Validar que todos los campos estén completos
-        if (email === '' || nombre === '' || celular === '' || password === '' || repetirPassword === '' || fechaNacimiento === '') {
-            alert('Por favor, completa todos los campos del formulario.');
+        // validar que los campos del formulario no esten vacios
+        if (
+            email === "" ||
+            nombre === "" ||
+            celular === "" ||
+            password === "" ||
+            repetirPassword === "" ||
+            fechaNacimiento === ""
+        ) {
+            alert("Por favor, completa todos los campos del formulario.");
             return;
         }
 
-        // Validar el formato de la contraseña
+        // validar con la funcion el formato de la contraseña
         if (!validarFormatoPassword(password)) {
-            alert('La contraseña debe tener entre 6 y 15 caracteres, y contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial.');
+            alert("La contraseña debe tener entre 6 y 15 caracteres, y contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial.");
             return;
         }
 
-        // Validar que las contraseñas coincidan
+        // validar que las contraseñas coincidan
         if (password !== repetirPassword) {
-            alert('Las contraseñas no coinciden. Por favor, verifica nuevamente.');
+            alert("Las contraseñas no coinciden. Por favor, verifica nuevamente.");
             return;
         }
 
-        // Validar que el usuario sea mayor de 14 años
+        // validar la edad minima 14 años
         if (!validarEdadMinima(fechaNacimiento)) {
-            alert('Debes ser mayor de 14 años para registrarte.');
+            alert("Debes ser mayor de 14 años para registrarte.");
             return;
         }
 
-        // Obtener los usuarios del localStorage (si existen)
-        let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+        // obtener los usuarios del localStorage si existen
+        let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
 
-        // Verificar si el usuario ya está registrado
-        const usuarioExistente = usuarios.find(usuario => usuario.email === email);
+        // verificar si el usuario ya está registrado
+        const usuarioExistente = usuarios.find(
+            (usuario) => usuario.email === email
+        );
         if (usuarioExistente) {
-            alert('El usuario ya está registrado. Por favor, inicia sesión o utiliza otro correo electrónico.');
+            alert("El usuario ya está registrado. Por favor, inicia sesión o utiliza otro correo electrónico.");
             return;
         }
 
-        // Crear un objeto de usuario con los datos del formulario
+        // crear un objeto de usuario con los datos del formulario
         const nuevoUsuario = {
             email: email,
             nombre: nombre,
@@ -218,232 +317,180 @@ if (registroForm) {
             password: password,
             fechaNacimiento: fechaNacimiento,
             rol: rol,
-            token: ""
+            token: "",
         };
 
-        // Agregar el nuevo usuario al arreglo de usuarios
+        // agregar el nuevo usuario al arreglo de usuarios y almacenarlo en el localStorage
         usuarios.push(nuevoUsuario);
+        localStorage.setItem("usuarios", JSON.stringify(usuarios));
 
-        // Almacenar el arreglo de usuarios actualizado en el localStorage
-        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+        alert("¡Usuario registrado correctamente!");
 
-        // Enviar una alerta de registro exitoso
-        alert('¡Usuario registrado correctamente!');
-
-        // Limpiar los campos del formulario después de agregar el usuario
+        // limpiar los campos del formulario
         registroForm.reset();
     });
 }
 
-
-
-
-
-
-// Obtener el formulario de inicio de sesión
-const loginForm = document.getElementById('loginForm');
-
+// obtener el formulario de inicio de sesión
+const loginForm = document.getElementById("loginForm");
+// si el formulario de inicio de sesión existe
 if (loginForm) {
-    // Agregar un evento de escucha al envío del formulario
-    loginForm.addEventListener('submit', function(event) {
-        event.preventDefault(); // Evitar el envío del formulario por defecto
+    // agregar un evento de escucha al envío del formulario y evitar el envío por defecto
+    loginForm.addEventListener("submit", function (event) {
+        event.preventDefault();
 
-        // Obtener los valores de los campos del formulario
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
+        // obtener los valores de los campos del formulario
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
 
-        // Obtener los usuarios del localStorage
-        const usuariosJSON = localStorage.getItem('usuarios');
+        // obtener los usuarios del localStorage
+        const usuariosJSON = localStorage.getItem("usuarios");
         const usuarios = JSON.parse(usuariosJSON);
 
-        // Buscar el usuario por correo electrónico y contraseña
-        const usuarioEncontrado = usuarios.find(usuario => usuario.email === email && usuario.password === password);
+        // buscar el usuario por correo electrónico y contraseña
+        const usuarioEncontrado = usuarios.find(
+            (usuario) =>
+                usuario.email === email && usuario.password === password
+        );
 
         if (usuarioEncontrado) {
-            // El usuario ha iniciado sesión correctamente
-            alert('¡Inicio de sesión exitoso!');
+            alert("¡Inicio de sesión exitoso!");
 
-            // Crear un nuevo objeto de usuario sin la contraseña
+            // crear un nuevo objeto de usuario sin la contraseña
             const usuarioSinContraseña = {
                 email: usuarioEncontrado.email,
                 nombre: usuarioEncontrado.nombre,
                 celular: usuarioEncontrado.celular,
                 fechaNacimiento: usuarioEncontrado.fechaNacimiento,
-                rol: usuarioEncontrado.rol
+                rol: usuarioEncontrado.rol,
             };
 
-            // Guardar la sesión del usuario en el localStorage sin la contraseña
-            localStorage.setItem('sesionUsuario', JSON.stringify(usuarioSinContraseña));
+            // guardar la sesión del usuario en el localStorage sin la contraseña
+            localStorage.setItem(
+                "sesionUsuario",
+                JSON.stringify(usuarioSinContraseña)
+            );
 
-            // Redirigir al usuario al index
-            window.location.href = 'index.html';
+            window.location.href = "index.html";
         } else {
-            // Las credenciales son inválidas
-            alert('Correo electrónico o contraseña incorrectos. Por favor, intenta nuevamente.');
+            alert("Correo electrónico o contraseña incorrectos. Por favor, intenta nuevamente.");
         }
     });
 }
 
 // Obtener el formulario de recuperación de contraseña
-const recuperarForm = document.getElementById('recuperarForm');
-
-// Agregar un evento de escucha al envío del formulario
+const recuperarForm = document.getElementById("recuperarForm");
+//si el formulario de recuperación de contraseña existe
 if (recuperarForm) {
-    recuperarForm.addEventListener('submit', function(event) {
-        event.preventDefault(); // Evitar el envío del formulario por defecto
+    // agregar un evento de escucha al envío del formulario y evitar el envío por defecto
+    recuperarForm.addEventListener("submit", function (event) {
+        event.preventDefault();
 
-        // Obtener los valores de los campos del formulario
-        const recuperarEmail = document.getElementById('recuperarEmail').value;
-        const token = document.getElementById('token').value;
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
+        // obtener los valores de los campos del formulario
+        const recuperarEmail = document.getElementById("recuperarEmail").value;
+        const token = document.getElementById("token").value;
+        const newPassword = document.getElementById("newPassword").value;
+        const confirmPassword =
+            document.getElementById("confirmPassword").value;
 
-        // Obtener los usuarios del localStorage
-        const usuariosJSON = localStorage.getItem('usuarios');
+        // obtener los usuarios del localStorage
+        const usuariosJSON = localStorage.getItem("usuarios");
 
         if (usuariosJSON) {
-            // Convertir el JSON a un arreglo de usuarios
             const usuarios = JSON.parse(usuariosJSON);
 
-            // Buscar el usuario por correo electrónico y token
-            const usuario = usuarios.find(usuario => usuario.email === recuperarEmail && usuario.token === token);
+            // buscar el usuario por correo electrónico y token
+            const usuario = usuarios.find(
+                (usuario) =>
+                    usuario.email === recuperarEmail && usuario.token === token
+            );
 
             if (usuario) {
-                // Validar el formato de la nueva contraseña
+                // validar el formato de la nueva contraseña
                 if (!validarFormatoPassword(newPassword)) {
-                    alert('La contraseña debe tener entre 6 y 15 caracteres, y contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial.');
+                    alert("La contraseña debe tener entre 6 y 15 caracteres, y contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial.");
                     return;
                 }
 
-                // Validar que las contraseñas coincidan
+                // validar que las contraseñas coincidan
                 if (newPassword !== confirmPassword) {
-                    alert('Las contraseñas no coinciden. Por favor, verifica nuevamente.');
+                    alert("Las contraseñas no coinciden. Por favor, verifica nuevamente.");
                     return;
                 }
 
-                // Actualizar la contraseña del usuario
+                // actualizar la contraseña del usuario y actualizar el arreglo de usuarios en el localStorage
                 usuario.password = newPassword;
+                localStorage.setItem("usuarios", JSON.stringify(usuarios));
 
-                // Actualizar el arreglo de usuarios en el localStorage
-                localStorage.setItem('usuarios', JSON.stringify(usuarios));
-
-                // Mostrar una alerta de éxito
-                alert('La contraseña ha sido actualizada correctamente.');
-
-                // Redirigir al usuario a la página de inicio de sesión
-                window.location.href = 'login.html';
+                alert("La contraseña ha sido actualizada correctamente.");
+                window.location.href = "login.html";
             } else {
-                // El correo electrónico o el token no son válidos
-                alert('El correo electrónico o el token ingresados no son válidos. Por favor, verifica nuevamente.');
+                alert("El correo electrónico o el token ingresados no son válidos. Por favor, verifica nuevamente.");
             }
         } else {
-            // No hay usuarios registrados en el localStorage
-            alert('No hay usuarios registrados.');
+            alert("No hay usuarios registrados.");
         }
     });
 }
 
+//funcion para generar el token de recuperación
 function generarToken() {
-    // Obtener el valor del campo de correo electrónico
-    const recuperarEmail = document.getElementById('recuperarEmail').value;
-
-    // Obtener los usuarios del localStorage
-    const usuariosJSON = localStorage.getItem('usuarios');
+    // obtener el valor del campo de correo electrónico
+    const recuperarEmail = document.getElementById("recuperarEmail").value;
+    // obtener los usuarios del localStorage
+    const usuariosJSON = localStorage.getItem("usuarios");
 
     if (usuariosJSON) {
-        // Convertir el JSON a un arreglo de usuarios
         const usuarios = JSON.parse(usuariosJSON);
 
-        // Buscar el usuario por correo electrónico
-        const usuario = usuarios.find(usuario => usuario.email === recuperarEmail);
+        // buscar el usuario por correo electrónico
+        const usuario = usuarios.find(
+            (usuario) => usuario.email === recuperarEmail
+        );
 
         if (usuario) {
-            // Generar un token aleatorio de 6 dígitos
+            // generar un token aleatorio de 6 dígitos
             const token = Math.floor(Math.random() * 900000) + 100000;
 
-            // Asignar el token generado al usuario encontrado
+            // asignar el token generado al usuario encontrado
             usuario.token = token.toString();
 
-            // Mostrar el token en una alerta
-            alert('Tu token de recuperación es: ' + token);
+            // mostrar el token en una alerta
+            alert("Tu token de recuperación es: " + token);
 
-            // Aquí puedes agregar la lógica para enviar el token por correo electrónico al usuario
-            // utilizando un servicio de correo electrónico o una API de envío de correos
-
-            // Actualizar el arreglo de usuarios en el localStorage
-            localStorage.setItem('usuarios', JSON.stringify(usuarios));
+            // actualizar el arreglo de usuarios en el localStorage
+            localStorage.setItem("usuarios", JSON.stringify(usuarios));
         } else {
-            // El correo electrónico no está registrado
-            alert('El correo electrónico ingresado no está registrado.');
+            alert("El correo electrónico ingresado no está registrado.");
         }
     } else {
-        // No hay usuarios registrados en el localStorage
-        alert('No hay usuarios registrados.');
+        alert("No hay usuarios registrados.");
     }
 }
 
-// Obtener el elemento del menú "Mi cuenta"
-const accountDropdown = document.getElementById('accountDropdown');
+// obtener los formularios de modificar perfil y modificar contraseña
+const modificarPerfilForm = document.getElementById("modificarPerfilForm");
+const modificarContraseñaForm = document.getElementById(
+    "modificarContraseñaForm"
+);
 
-// Obtener la sesión del usuario del localStorage
-const sesionUsuario = JSON.parse(localStorage.getItem('sesionUsuario'));
-
-// Generar las opciones del menú "Mi cuenta" según la sesión del usuario
-if (sesionUsuario) {
-    // El usuario está logueado
-    accountDropdown.innerHTML = `
-        <li><a class="dropdown-item" href="modificar_perfil.html">Modificar mi perfil</a></li>
-        <li><a class="dropdown-item" href="#" id="logoutLink">Cerrar sesión</a></li>
-    `;
-
-    // Agregar un evento de clic al enlace "Cerrar sesión"
-    const logoutLink = document.getElementById('logoutLink');
-    logoutLink.addEventListener('click', function(event) {
-        event.preventDefault();
-        // Borrar la sesión del usuario del localStorage
-        localStorage.removeItem('sesionUsuario');
-        // Redirigir al index
-        window.location.href = 'index.html';
-    });
-} else {
-    // El usuario no está logueado
-    accountDropdown.innerHTML = `
-        <li><a class="dropdown-item" href="login.html">Iniciar sesión</a></li>
-        <li><a class="dropdown-item" href="registrarme.html">Registrarse</a></li>
-    `;
-}
-
-// Obtener los formularios
-const modificarPerfilForm = document.getElementById('modificarPerfilForm');
-const modificarContraseñaForm = document.getElementById('modificarContraseñaForm');
-
-
-// Obtener los usuarios del localStorage
-const usuariosJSON = localStorage.getItem('usuarios');
-
-// Llenar los campos del formulario de modificar perfil con los datos del usuario
-if (sesionUsuario) {
-    if (pageName == "modificar_perfil.html") {
-        document.getElementById('nombre').value = sesionUsuario.nombre;
-        document.getElementById('celular').value = sesionUsuario.celular;
-        document.getElementById('fechaNacimiento').value = sesionUsuario.fechaNacimiento;
-    }
-}
-
-// Manejar el envío del formulario de modificar perfil
+// manejar el envío del formulario de modificar perfil
 if (modificarPerfilForm) {
-    modificarPerfilForm.addEventListener('submit', function(event) {
+    // crear un evento de escucha al envío del formulario y evitar el envío por defecto
+    modificarPerfilForm.addEventListener("submit", function (event) {
         event.preventDefault();
 
+        // obtener los usuarios del localStorage
+        const usuariosJSON = localStorage.getItem("usuarios");
         const usuarios = JSON.parse(usuariosJSON);
 
-        // Obtener los valores de los campos del formulario
-        const nombre = document.getElementById('nombre').value;
-        const celular = document.getElementById('celular').value;
-        const fechaNacimiento = document.getElementById('fechaNacimiento').value;
+        // obtener los valores de los campos del formulario
+        const nombre = document.getElementById("nombre").value;
+        const celular = document.getElementById("celular").value;
+        const fechaNacimiento = document.getElementById("fechaNacimiento").value;
 
-        // Buscar el usuario por correo electrónico y actualizar sus datos
-        usuarios.forEach(usuario => {
+        // buscar el usuario por correo electrónico y actualizar sus datos
+        usuarios.forEach((usuario) => {
             if (usuario.email === sesionUsuario.email) {
                 usuario.nombre = nombre;
                 usuario.celular = celular;
@@ -451,52 +498,92 @@ if (modificarPerfilForm) {
             }
         });
 
-        // Actualizar el arreglo de usuarios en el localStorage
-        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+        // actualizar el arreglo de usuarios en el localStorage
+        localStorage.setItem("usuarios", JSON.stringify(usuarios));
 
-        // Actualizar la sesión del usuario en el localStorage
+        // actualizar la sesión del usuario en el localStorage
         sesionUsuario.nombre = nombre;
         sesionUsuario.celular = celular;
         sesionUsuario.fechaNacimiento = fechaNacimiento;
-        localStorage.setItem('sesionUsuario', JSON.stringify(sesionUsuario));
+        localStorage.setItem("sesionUsuario", JSON.stringify(sesionUsuario));
 
-        alert('Información personal actualizada correctamente.');
+        alert("Información personal actualizada correctamente.");
     });
 }
 
-// Manejar el envío del formulario de modificar contraseña
+// manejar el envío del formulario de modificar contraseña
 if (modificarContraseñaForm) {
-    modificarContraseñaForm.addEventListener('submit', function(event) {
+    // crear un evento de escucha al envío del formulario y evitar el envío por defecto
+    modificarContraseñaForm.addEventListener("submit", function (event) {
         event.preventDefault();
 
+        // obtener los usuarios del localStorage
+        const usuariosJSON = localStorage.getItem("usuarios");
         const usuarios = JSON.parse(usuariosJSON);
 
-        // Obtener los valores de los campos del formulario
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
+        // obtener los valores de los campos del formulario
+        const newPassword = document.getElementById("newPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
 
-        // Validar que las contraseñas coincidan
+        // validar que las contraseñas coincidan
         if (newPassword !== confirmPassword) {
-            alert('Las contraseñas no coinciden. Por favor, verifica nuevamente.');
+            alert("Las contraseñas no coinciden. Por favor, verifica nuevamente.");
             return;
         }
 
-        // Validar el formato de la nueva contraseña
+        // validar el formato de la nueva contraseña
         if (!validarFormatoPassword(newPassword)) {
-            alert('La contraseña debe tener entre 6 y 15 caracteres, y contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial.');
+            alert("La contraseña debe tener entre 6 y 15 caracteres, y contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial.");
             return;
         }
 
-        // Buscar el usuario por correo electrónico y actualizar su contraseña
-        usuarios.forEach(usuario => {
+        // buscar el usuario por correo electrónico y actualizar su contraseña
+        usuarios.forEach((usuario) => {
             if (usuario.email === sesionUsuario.email) {
                 usuario.password = newPassword;
             }
         });
 
-        // Actualizar el arreglo de usuarios en el localStorage
-        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+        // actualizar el arreglo de usuarios en el localStorage
+        localStorage.setItem("usuarios", JSON.stringify(usuarios));
 
-        alert('Contraseña actualizada correctamente.');
+        alert("Contraseña actualizada correctamente.");
     });
+}
+
+// manejar el clic en el botón "Guardar cambios" del modal de edición de administrar usuarios
+const saveChangesBtn = document.getElementById('saveChangesBtn');
+if (saveChangesBtn) {
+    // agregar un evento de clic al botón "Guardar cambios"
+    saveChangesBtn.addEventListener('click', function() {
+        const email = document.getElementById('editEmail').value;
+        const nombre = document.getElementById('editNombre').value;
+        const celular = document.getElementById('editCelular').value;
+        const fechaNacimiento = document.getElementById('editFechaNacimiento').value;
+        const rol = document.getElementById('editRol').value;
+    
+        // obtener los usuarios del localStorage
+        const usuariosJSON = localStorage.getItem("usuarios");
+        const usuarios = JSON.parse(usuariosJSON);
+    
+        // actualizar los datos del usuario en el arreglo de usuarios
+        usuarios.forEach(usuario => {
+            if (usuario.email === email) {
+                usuario.nombre = nombre;
+                usuario.celular = celular;
+                usuario.fechaNacimiento = fechaNacimiento;
+                usuario.rol = rol;
+            }
+        });
+    
+        // actualizar el arreglo de usuarios en el localStorage
+        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    
+        // cerrar el modal de edición
+        const editUserModal = document.getElementById('editUserModal');
+        const modal = bootstrap.Modal.getInstance(editUserModal);
+        modal.hide();
+    
+        location.reload();
+    });    
 }
