@@ -1,0 +1,43 @@
+:root {
+    --primary-color: #0d9fee;
+    --secondary-color: #69facb;
+}
+.navbar {
+    background-color: var(--primary-color);
+}
+.footer {
+    background-color: var(--primary-color);
+}
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.btn-primary:hover {
+    background-color: #0a7bc9;
+    border-color: #0a7bc9;
+}
+.list-group-item.active {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+.card-title {
+    color: var(--primary-color);
+}
+.badge-primary {
+    background-color: var(--primary-color);
+}
+.modal-header {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+.modal-title {
+    color: #fff;
+}
+.footer-link {
+    color: #fff;
+    text-decoration: none;
+}
+.footer-link:hover {
+    color: #69facb;
+    text-decoration: underline;
+}
