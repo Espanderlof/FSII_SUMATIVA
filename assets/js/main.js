@@ -71,7 +71,7 @@ const productos = [
             "Correa reflectante para perros. Correa ajustable con costuras reflectantes.",
         imagen: "3.jpg",
         precio: 5500,
-        categoria: 3,
+        categoria: 2,
     },
 ];
 
@@ -189,22 +189,53 @@ function loadCategories() {
         const listItem = document.createElement("li");
         listItem.classList.add("list-group-item");
         listItem.textContent = category.nombre;
+        listItem.setAttribute("data-id", category.id);
+        listItem.addEventListener("click", function () {
+            const selectedCategoryId = parseInt(this.getAttribute("data-id"));
+            updateSelectedCategory(selectedCategoryId);
+            filterProducts(selectedCategoryId);
+        });
         categoryList.appendChild(listItem);
     });
+
+    // Seleccionar la categoría "Todas las categorías" al cargar la página
+    const allCategoriesItem = categoryList.querySelector('[data-id="0"]');
+    allCategoriesItem.classList.add("active");
+}
+
+// funcion encargada de filtrar los productos por categoria
+function updateSelectedCategory(categoryId) {
+    const categoryItems = document.querySelectorAll("#categoryList .list-group-item");
+    categoryItems.forEach((item) => {
+        if (parseInt(item.getAttribute("data-id")) === categoryId) {
+            item.classList.add("active");
+        } else {
+            item.classList.remove("active");
+        }
+    });
+}
+// filtrar productos por categoria
+function filterProducts(categoryId) {
+    loadProducts(categoryId);
 }
 
 // funcion encargada de cargar los productos
-function loadProducts() {
+function loadProducts(categoryId) {
     const productList = document.getElementById("productList");
-    productos.forEach((product) => {
+    productList.innerHTML = "";
+
+    const filteredProducts = categoryId === 0 ? productos : productos.filter((product) => product.categoria === categoryId);
+
+    filteredProducts.forEach((product, index) => {
         const col = document.createElement("div");
-        col.classList.add("col", "mb-4");
+        col.classList.add("col", "mb-4", "product-item");
         col.innerHTML = `
             <div class="card h-100">
                 <img src="assets/img/productos/${product.imagen}" class="card-img-top" alt="${product.nombre}">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">${product.nombre}</h5>
                     <p class="card-text flex-grow-1">${product.descripcion}</p>
+                    <p class="card-text">Precio: $${product.precio}</p>
                     <div class="mt-auto">
                         <button class="btn btn-primary add-to-cart-btn" data-id="${product.id}">Agregar al carrito</button>
                     </div>
@@ -212,6 +243,11 @@ function loadProducts() {
             </div>
         `;
         productList.appendChild(col);
+
+        // Aplicar la clase 'show' después de un breve retraso para cada producto
+        setTimeout(() => {
+            col.classList.add("show");
+        }, 100 * index);
     });
 
     // agregar evento de clic a los botones "Agregar al carrito"
@@ -228,7 +264,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // cargar categorias y productos en la pagina index.html
     if (pageName == "index.html") {
         loadCategories();
-        loadProducts();
+        loadProducts(0);
     }
     if (pageName === "cart.html") {
         loadCartItems();
